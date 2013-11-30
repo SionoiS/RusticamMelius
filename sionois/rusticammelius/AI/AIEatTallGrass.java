@@ -1,5 +1,6 @@
 package sionois.rusticammelius.AI;
 
+import sionois.rusticammelius.Mobs.EntityChickenRM;
 import TFC.API.Entities.IAnimal;
 import TFC.Core.TFC_Core;
 import net.minecraft.block.Block;
@@ -24,19 +25,24 @@ public class AIEatTallGrass extends EntityAIBase
 		this.setMutexBits(7);
 	}
 	@Override
-	public boolean shouldExecute() 
-	{
-		IAnimal animal = (IAnimal)theEntity;
-		if(animal.getHunger() < 144000 && theWorld.rand.nextInt(10) == 0)
-		{
-			int i = MathHelper.floor_double(this.theEntity.posX);
-			int j = MathHelper.floor_double(this.theEntity.posY);
-			int k = MathHelper.floor_double(this.theEntity.posZ);
-			boolean isTallGrass = (this.theWorld.getBlockId(i, j, k) == Block.tallGrass.blockID && this.theWorld.getBlockMetadata(i, j, k) == 1);
-			return isTallGrass;
-		}
-		return false;
-	}
+    public boolean shouldExecute() 
+    {
+            IAnimal animal = (IAnimal)theEntity;
+            if(animal.getHunger() < 144000)
+            {
+                    int i = MathHelper.floor_double(this.theEntity.posX);
+                    int j = MathHelper.floor_double(this.theEntity.posY);
+                    int k = MathHelper.floor_double(this.theEntity.posZ);
+                    boolean isGrass = TFC_Core.isLushGrass(theWorld.getBlockId(i, j-1, k));
+                    boolean isTallGrass = (this.theWorld.getBlockId(i, j, k) == Block.tallGrass.blockID && this.theWorld.getBlockMetadata(i, j, k) == 1);
+                    if(animal instanceof EntityChickenRM)
+                    {
+                            return isGrass;
+                    }
+                    else return isTallGrass;
+            }
+            return false;
+    }
 
 	/**
 	 * Execute a one shot task or start executing a continuous task
@@ -75,24 +81,30 @@ public class AIEatTallGrass extends EntityAIBase
 	/**
 	 * Updates the task
 	 */
-	@Override
-	public void updateTask()
-	{
-		this.eatGrassTick = Math.max(0, this.eatGrassTick - 1);
+	 @Override
+     public void updateTask()
+     {
+		 this.eatGrassTick = Math.max(0, this.eatGrassTick - 1);
 
-		if (this.eatGrassTick == 1)
-		{
-			int i = MathHelper.floor_double(this.theEntity.posX);
-			int j = MathHelper.floor_double(this.theEntity.posY);
-			int k = MathHelper.floor_double(this.theEntity.posZ);
+         if (this.eatGrassTick == 1)
+         {
+        	 int i = MathHelper.floor_double(this.theEntity.posX);
+             int j = MathHelper.floor_double(this.theEntity.posY);
+             int k = MathHelper.floor_double(this.theEntity.posZ);
 
-			int grassID = this.theWorld.getBlockId(i, j - 1, k);
+             int grassID = this.theWorld.getBlockId(i, j - 1, k);
 
-			if (this.theWorld.getBlockId(i, j, k) == Block.tallGrass.blockID)
-			{
-				this.theWorld.destroyBlock(i, j, k, false);
-				this.theEntity.eatGrassBonus();
-			}
-		}
-	}
+             if (this.theWorld.getBlockId(i, j, k) == Block.tallGrass.blockID)
+             {
+            	 this.theWorld.destroyBlock(i, j, k, false);
+                 this.theEntity.eatGrassBonus();
+             }
+             else if (TFC_Core.isLushGrass(grassID))
+             {
+            	 this.theWorld.playAuxSFX(2001, i, j - 1, k, Block.grass.blockID);
+            	 TFC_Core.convertGrassToDirt(theWorld, i, j-1, k);
+            	 this.theEntity.eatGrassBonus();
+             }
+         }
+     }
 }
