@@ -81,7 +81,7 @@ public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
 		if(!this.worldObj.isRemote)
 		{
-			System.out.println("Cow RM");
+			//System.out.println("Cow RM");
 		}
 	}
 	public EntityCowRM(World par1World, IAnimal mother, float father_size)

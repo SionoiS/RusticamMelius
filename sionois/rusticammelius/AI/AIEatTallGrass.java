@@ -48,7 +48,7 @@ public class AIEatTallGrass extends EntityAIBase
 	@Override
 	public void startExecuting()
 	{
-		System.out.println("startExecuting");
+		//System.out.println("startExecuting");
 		this.eatGrassTick = 40;
 		this.theWorld.setEntityState(this.theEntity, (byte)10);
 		this.theEntity.getNavigator().tryMoveToXYZ((double)((float)this.edibleBlockX) + 0.5D, (double)(this.edibleBlockY), (double)((float)this.edibleBlockZ) + 0.5D, this.field_75404_b);
@@ -60,7 +60,7 @@ public class AIEatTallGrass extends EntityAIBase
 	@Override
 	public void resetTask()
 	{
-		System.out.println("resetTask");
+		//System.out.println("resetTask");
 		this.eatGrassTick = 0;
 	}
 
@@ -101,7 +101,7 @@ public class AIEatTallGrass extends EntityAIBase
 
 		 if(this.theEntity.getDistanceSq((double)this.edibleBlockX, (double)(this.edibleBlockY), (double)this.edibleBlockZ) > 1.25D)
 		 {
-			 System.out.println("tryMoveToXYZ");
+			 //System.out.println("tryMoveToXYZ");
 			 this.theEntity.getNavigator().tryMoveToXYZ((double)((float)this.edibleBlockX) + 0.5D, (double)(this.edibleBlockY), (double)((float)this.edibleBlockZ) + 0.5D, this.field_75404_b);
 		 }
 		 else

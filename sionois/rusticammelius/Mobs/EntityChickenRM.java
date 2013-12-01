@@ -71,7 +71,7 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
 		if(!this.worldObj.isRemote)
 		{
-			System.out.println("Chicken RM");
+			//System.out.println("Chicken RM");
 		}
 	}
 

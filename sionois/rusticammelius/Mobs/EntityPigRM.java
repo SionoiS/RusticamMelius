@@ -79,7 +79,7 @@ public class EntityPigRM extends EntityPig implements IAnimal, IFarmAnimals
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
 		if(!this.worldObj.isRemote)
 		{
-			System.out.println("Pig RM");
+			//System.out.println("Pig RM");
 		}
 	}
 

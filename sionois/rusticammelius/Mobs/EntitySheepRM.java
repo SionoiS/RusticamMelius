@@ -90,7 +90,7 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
 		if(!this.worldObj.isRemote)
 		{
-			System.out.println("Sheep RM");
+			//System.out.println("Sheep RM");
 		}
 	}
 	public EntitySheepRM(World par1World,IAnimal mother, float F_size)
