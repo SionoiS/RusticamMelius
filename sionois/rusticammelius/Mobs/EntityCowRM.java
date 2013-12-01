@@ -55,12 +55,12 @@ public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 		this.getNavigator().setAvoidsWater(true);
 		this.tasks.addTask(6, new AIEatTallGrass(this, 1.2F));
 		this.tasks.addTask(2, new EntityAIMateTFC(this,this.worldObj, 1.0F));
-		this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
+		//this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
  
 		this.animalID = TFC_Time.getTotalTicks() + entityId;
 		
-		this.bellyFull = true;
-		this.hungry = false;
+		this.bellyFull = false;
+		this.hungry = true;
 		this.starving = false;
 		
 		this.pregnant = false;
@@ -81,7 +81,7 @@ public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
 		if(!this.worldObj.isRemote)
 		{
-			System.out.println("AI Cow RM");
+			System.out.println("Cow RM");
 		}
 	}
 	public EntityCowRM(World par1World, IAnimal mother, float father_size)
@@ -98,9 +98,6 @@ public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
 	}
-    /**
-     * Returns true if the newer Entity AI code should be run
-     */
 	@Override
     public boolean isAIEnabled()
     {
@@ -214,26 +211,25 @@ public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 	{
 		super.applyEntityAttributes();
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute(500);//MaxHealth
-		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setAttribute(0.20000000298023224D);
 	}
 
 	@Override
-	public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound)
+	public void writeEntityToNBT(NBTTagCompound nbt)
 	{
-		super.writeEntityToNBT(par1NBTTagCompound);
-		par1NBTTagCompound.setInteger ("Sex", this.sex);
-		par1NBTTagCompound.setLong ("Animal ID", this.animalID);
-		par1NBTTagCompound.setFloat ("Size Modifier", this.size_mod);
+		super.writeEntityToNBT(nbt);
+		nbt.setInteger ("Sex", this.sex);
+		nbt.setLong ("Animal ID", this.animalID);
+		nbt.setFloat ("Size Modifier", this.size_mod);
 		
-		par1NBTTagCompound.setBoolean("BellyFull", this.bellyFull);
-		par1NBTTagCompound.setBoolean("Hungry", this.hungry);
-		par1NBTTagCompound.setBoolean("Starving", this.starving);
+		nbt.setBoolean("BellyFull", this.bellyFull);
+		nbt.setBoolean("Hungry", this.hungry);
+		nbt.setBoolean("Starving", this.starving);
 		
-		par1NBTTagCompound.setBoolean("Pregnant", this.pregnant);
-		par1NBTTagCompound.setFloat("MateSize", this.mateSizeMod);
-		par1NBTTagCompound.setLong("ConceptionTime",this.conception);
-		par1NBTTagCompound.setInteger("Age", getBirthDay());
-		par1NBTTagCompound.setLong("HasMilkTime", this.hasMilkTime);
+		nbt.setBoolean("Pregnant", this.pregnant);
+		nbt.setFloat("MateSize", this.mateSizeMod);
+		nbt.setLong("ConceptionTime",this.conception);
+		nbt.setInteger("Age", getBirthDay());
+		nbt.setLong("HasMilkTime", this.hasMilkTime);
 	}
 
 	@Override
@@ -254,45 +250,6 @@ public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 		this.hasMilkTime = nbt.getLong("HasMilkTime");
 		this.setAge(nbt.getInteger ("Age"));
 	}
-	   /**
-     * Returns the sound this mob makes while it's alive.
-     */
-    protected String getLivingSound()
-    {
-        return "mob.cow.say";
-    }
-
-    /**
-     * Returns the sound this mob makes when it is hurt.
-     */
-    protected String getHurtSound()
-    {
-        return "mob.cow.hurt";
-    }
-
-    /**
-     * Returns the sound this mob makes on death.
-     */
-    protected String getDeathSound()
-    {
-        return "mob.cow.hurt";
-    }
-
-    /**
-     * Plays step sound at given x, y, z for the entity
-     */
-    protected void playStepSound(int par1, int par2, int par3, int par4)
-    {
-        this.playSound("mob.cow.step", 0.15F, 1.0F);
-    }
-
-    /**
-     * Returns the volume for the sounds this mob makes.
-     */
-    protected float getSoundVolume()
-    {
-        return 0.4F;
-    }
 	/**
 	 * Returns the item ID for the item the mob drops on death.
 	 */

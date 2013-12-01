@@ -16,6 +16,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemSeeds;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import sionois.rusticammelius.RMItems;
 import sionois.rusticammelius.AI.AIEatTallGrass;
@@ -33,7 +34,7 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 	protected boolean bellyFull;
 	protected boolean hungry;
 	protected boolean starving;
-	protected int hunger;
+	protected int hunger = 168000;
 	protected long hasMilkTime;
 	protected int age;
 	protected float mateSizeMod;
@@ -49,12 +50,12 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		this.getNavigator().setAvoidsWater(true);
 		this.tasks.addTask(6, new AIEatTallGrass(this, 1.2F));
 		//this.tasks.addTask(3, new EntityAIMateTFC(this,this.worldObj, 1.0F));
-		this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
+		//this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
 
-		this.bellyFull = true;
-		this.hungry = false;
+		this.bellyFull = false;
+		this.hungry = true;
 		this.starving = false;
-		hunger = 168000;
+
 		animalID = TFC_Time.getTotalTicks() + entityId;
 		mateSizeMod = 1f;
 		sex = rand.nextInt(2);
@@ -68,8 +69,10 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		this.setAge((int) TFC_Time.getTotalDays() - getNumberOfDaysToAdult());
 		//For Testing Only(makes spawned animals into babies)
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
-		
-		//System.out.println("AI Chicken RM");
+		if(!this.worldObj.isRemote)
+		{
+			System.out.println("Chicken RM");
+		}
 	}
 
 	public EntityChickenRM(World world, IAnimal mother, float f_size)
@@ -87,6 +90,11 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		this.setAge((int) TFC_Time.getTotalDays());
 	}
 	@Override
+    public boolean isAIEnabled()
+    {
+        return true;
+    }
+	@Override
 	protected void entityInit()
 	{
 		super.entityInit();
@@ -100,24 +108,39 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		super.applyEntityAttributes();
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute(200);//MaxHealth
 	}
-
-	/**
-	 * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
-	 * use this to react to sunlight and start to burn.
-	 */
+	@Override
+	public void eatGrassBonus()
+	{
+		//System.out.println("eatGrassBonus");
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
+	}
 	@Override
 	public void onLivingUpdate()
 	{
-		//Handle Hunger ticking
-		if (hunger > 168000)
-		{
-			hunger = 168000;
+        if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+        {
+        	//System.out.println("tick");
+        	if(bellyFull)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = true;
+        		this.starving = false;
+        		//System.out.println("hungry");
+        	}
+        	else if(hungry)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = false;
+        		this.starving = true;
+        		//System.out.println("starving");
+        	}
 		}
-		if (hunger > 0)
-		{
-			hunger--;
-		}
-
+    	if(starving)
+    	{
+    		this.attackEntityFrom(DamageSource.starve, 1.0F);
+    	}
 		syncData();
 		if(isAdult()){
 			setGrowingAge(0);
@@ -140,7 +163,7 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		super.onLivingUpdate();
 		TFC_Core.PreventEntityDataUpdate = false;
 
-		if (hunger > 144000 && rand.nextInt (100) == 0 && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
 		{
 			this.heal(1);
 		}
@@ -169,9 +192,13 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 	{
 		super.writeEntityToNBT(nbt);
 		nbt.setInteger ("Sex", sex);
+		
+		nbt.setBoolean("BellyFull", this.bellyFull);
+		nbt.setBoolean("Hungry", this.hungry);
+		nbt.setBoolean("Starving", this.starving);
+		
 		nbt.setLong ("Animal ID", animalID);
 		nbt.setFloat ("Size Modifier", size_mod);
-		nbt.setInteger ("Hunger", hunger);
 		nbt.setFloat("MateSize", mateSizeMod);
 		nbt.setInteger("Age", getBirthDay());
 	}
@@ -185,8 +212,12 @@ public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnim
 		super.readEntityFromNBT(nbt);
 		animalID = nbt.getLong ("Animal ID");
 		sex = nbt.getInteger ("Sex");
+		
+		this.bellyFull = nbt.getBoolean("BellyFull");
+		this.hungry = nbt.getBoolean("Hungry");
+		this.starving = nbt.getBoolean("Starving");
+		
 		size_mod = nbt.getFloat ("Size Modifier");
-		hunger = nbt.getInteger ("Hunger");
 		mateSizeMod = nbt.getFloat("MateSize");
 		this.dataWatcher.updateObject(15, nbt.getInteger ("Age"));
 	}

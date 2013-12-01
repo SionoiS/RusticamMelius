@@ -17,6 +17,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import sionois.rusticammelius.RMItems;
 import sionois.rusticammelius.AI.AIEatTallGrass;
@@ -48,7 +49,7 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 	protected boolean bellyFull;
 	protected boolean hungry;
 	protected boolean starving;
-	protected int hunger;
+	protected int hunger = 168000;
 	protected long hasMilkTime;
 	protected boolean pregnant;
 	protected int pregnancyRequiredTime;
@@ -65,13 +66,12 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		this.getNavigator().setAvoidsWater(true);
 		this.tasks.addTask(6, this.aiEatTallGrass);
 		this.tasks.addTask(2, new EntityAIMateTFC(this,this.worldObj, 1.0F));
-		this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
+		//this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
 
-
-		this.bellyFull = true;
-		this.hungry = false;
+		this.bellyFull = false;
+		this.hungry = true;
 		this.starving = false;
-		hunger = 168000;
+		
 		animalID = TFC_Time.getTotalTicks() + entityId;
 		pregnant = false;
 		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
@@ -88,8 +88,10 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		this.setAge((int) TFC_Time.getTotalDays() - getNumberOfDaysToAdult());
 		//For Testing Only(makes spawned animals into babies)
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
-		
-		//System.out.println("AI Sheep RM");
+		if(!this.worldObj.isRemote)
+		{
+			System.out.println("Sheep RM");
+		}
 	}
 	public EntitySheepRM(World par1World,IAnimal mother, float F_size)
 	{
@@ -105,6 +107,11 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
 	}
+	@Override
+    public boolean isAIEnabled()
+    {
+        return true;
+    }
 	@Override
 	protected void entityInit()
 	{
@@ -135,11 +142,15 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		float percent =(time-birth)/animal.getNumberOfDaysToAdult();
 		return Math.min(percent, 1f);
 	}
-
-	/**
-	 * Called frequently so the entity can update its state every tick as required. For example, zombies and skeletons
-	 * use this to react to sunlight and start to burn.
-	 */
+	@Override
+	public void eatGrassBonus()
+	{
+		//System.out.println("eatGrassBonus");
+		this.setSheared(false);
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
+	}
 	@Override
 	public void onLivingUpdate()
 	{
@@ -147,17 +158,28 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		{
 			this.sheepTimer = Math.max(0, this.sheepTimer - 1);
 		}
-
-		//Handle Hunger ticking
-		if (hunger > 168000)
-		{
-			hunger = 168000;
+        if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+        {
+        	//System.out.println("tick");
+        	if(bellyFull)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = true;
+        		this.starving = false;
+        		//System.out.println("hungry");
+        	}
+        	else if(hungry)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = false;
+        		this.starving = true;
+        		//System.out.println("starving");
+        	}
 		}
-		if (hunger > 0)
-		{
-			hunger--;
-		}
-
+    	if(starving)
+    	{
+    		this.attackEntityFrom(DamageSource.starve, 1.0F);
+    	}
 		if(super.inLove > 0){
 			super.inLove = 0;
 			setInLove(true);
@@ -196,7 +218,7 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		super.onLivingUpdate();
 		TFC_Core.PreventEntityDataUpdate = false;
 
-		if (hunger > 144000 && rand.nextInt (100) == 0 && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
 		{
 			this.heal(1);
 		}
@@ -216,14 +238,6 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 			}
 		}
 	}
-
-	@Override
-	public void eatGrassBonus()
-	{
-		this.setSheared(false);
-		hunger += 24000;
-	}
-
 	/**
 	 * Drop 0-2 items of this living's type
 	 */
@@ -294,9 +308,13 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 	{
 		super.writeEntityToNBT(nbt);
 		nbt.setInteger ("Sex", sex);
+		
+		nbt.setBoolean("BellyFull", this.bellyFull);
+		nbt.setBoolean("Hungry", this.hungry);
+		nbt.setBoolean("Starving", this.starving);
+		
 		nbt.setLong ("Animal ID", animalID);
 		nbt.setFloat ("Size Modifier", size_mod);
-		nbt.setInteger ("Hunger", hunger);
 		nbt.setBoolean("Pregnant", pregnant);
 		nbt.setFloat("MateSize", mateSizeMod);
 		nbt.setLong("ConceptionTime",timeOfConception);
@@ -312,8 +330,12 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 		super.readEntityFromNBT(nbt);
 		animalID = nbt.getLong ("Animal ID");
 		sex = nbt.getInteger ("Sex");
+		
+		this.bellyFull = nbt.getBoolean("BellyFull");
+		this.hungry = nbt.getBoolean("Hungry");
+		this.starving = nbt.getBoolean("Starving");
+		
 		size_mod = nbt.getFloat ("Size Modifier");
-		hunger = nbt.getInteger ("Hunger");
 		pregnant = nbt.getBoolean("Pregnant");
 		mateSizeMod = nbt.getFloat("MateSize");
 		timeOfConception = nbt.getLong("ConceptionTime");
