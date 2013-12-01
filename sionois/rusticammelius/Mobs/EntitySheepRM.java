@@ -29,7 +29,7 @@ import TFC.Core.TFC_Time;
 import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Items.Tools.ItemCustomKnife;
 
-public class EntitySheepRM extends EntitySheep implements IAnimal
+public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 {
 	/**
 	 * Holds the RGB table of the sheep colors - in OpenGL glColor3f values - used to render the sheep colored fleece.
@@ -42,9 +42,12 @@ public class EntitySheepRM extends EntitySheep implements IAnimal
 	 */
 	private int sheepTimer;
 	
-	private AIEatTallGrass aiEatTallGrass = new AIEatTallGrass(this);
+	private AIEatTallGrass aiEatTallGrass = new AIEatTallGrass(this, 1.2F);
 	protected long animalID;
 	protected int sex = 0;
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
 	protected int hunger;
 	protected long hasMilkTime;
 	protected boolean pregnant;
@@ -65,6 +68,9 @@ public class EntitySheepRM extends EntitySheep implements IAnimal
 		this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
 
 
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
 		hunger = 168000;
 		animalID = TFC_Time.getTotalTicks() + entityId;
 		pregnant = false;
@@ -82,10 +88,8 @@ public class EntitySheepRM extends EntitySheep implements IAnimal
 		this.setAge((int) TFC_Time.getTotalDays() - getNumberOfDaysToAdult());
 		//For Testing Only(makes spawned animals into babies)
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
-		if(!worldObj.isRemote)
-		{
-			System.out.println("AI Sheep RM");
-		}
+		
+		//System.out.println("AI Sheep RM");
 	}
 	public EntitySheepRM(World par1World,IAnimal mother, float F_size)
 	{
@@ -470,5 +474,15 @@ public class EntitySheepRM extends EntitySheep implements IAnimal
 	@Override
 	public void setAge(int par1) {
 		this.dataWatcher.updateObject(15, Integer.valueOf(par1));
+	}
+	@Override
+	public boolean isHungry()
+	{
+		return this.hungry;
+	}
+	@Override
+	public boolean isStarving()
+	{
+		return this.starving;
 	}
 }

@@ -26,10 +26,13 @@ import TFC.Core.TFC_Core;
 import TFC.Core.TFC_Time;
 import TFC.Entities.AI.EntityAIMateTFC;
 
-public class EntityChickenRM extends EntityChicken implements IAnimal
+public class EntityChickenRM extends EntityChicken implements IAnimal, IFarmAnimals
 {
 	protected long animalID;
 	protected int sex;
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
 	protected int hunger;
 	protected long hasMilkTime;
 	protected int age;
@@ -44,11 +47,13 @@ public class EntityChickenRM extends EntityChicken implements IAnimal
 		this.setSize(0.3F, 0.7F);
 		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
 		this.getNavigator().setAvoidsWater(true);
-		this.tasks.addTask(6, new AIEatTallGrass(this));
+		this.tasks.addTask(6, new AIEatTallGrass(this, 1.2F));
 		//this.tasks.addTask(3, new EntityAIMateTFC(this,this.worldObj, 1.0F));
 		this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
 
-
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
 		hunger = 168000;
 		animalID = TFC_Time.getTotalTicks() + entityId;
 		mateSizeMod = 1f;
@@ -63,10 +68,8 @@ public class EntityChickenRM extends EntityChicken implements IAnimal
 		this.setAge((int) TFC_Time.getTotalDays() - getNumberOfDaysToAdult());
 		//For Testing Only(makes spawned animals into babies)
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
-		if(!worldObj.isRemote)
-		{
-			System.out.println("AI Chicken RM");
-		}
+		
+		//System.out.println("AI Chicken RM");
 	}
 
 	public EntityChickenRM(World world, IAnimal mother, float f_size)
@@ -365,5 +368,15 @@ public class EntityChickenRM extends EntityChicken implements IAnimal
 			//par1EntityPlayer.addChatMessage("12: "+dataWatcher.getWatchableObjectInt(12)+", 15: "+dataWatcher.getWatchableObjectInt(15));
 		}
 		return super.interact(par1EntityPlayer);
+	}
+	@Override
+	public boolean isHungry()
+	{
+		return this.hungry;
+	}
+	@Override
+	public boolean isStarving()
+	{
+		return this.starving;
 	}
 }

@@ -6,15 +6,19 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIFollowParent;
 import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAIMate;
 import net.minecraft.entity.ai.EntityAIPanic;
 import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAITempt;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
+import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import sionois.rusticammelius.RMItems;
 import sionois.rusticammelius.AI.AIEatTallGrass;
@@ -26,11 +30,16 @@ import TFC.Core.TFC_Core;
 import TFC.Core.TFC_Time;
 import TFC.Entities.AI.EntityAIMateTFC;
 
-public class EntityCowRM extends EntityCow implements IAnimal
+public class EntityCowRM extends EntityCow implements IAnimal, IFarmAnimals
 {
 	protected long animalID;
 	protected int sex = 0;
-	protected int hunger = 0;
+	
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
+	
+	protected int hunger = 168000;
 	protected long hasMilkTime;
 	protected boolean pregnant;
 	protected int pregnancyRequiredTime;
@@ -44,18 +53,22 @@ public class EntityCowRM extends EntityCow implements IAnimal
 	{
 		super(par1World);
 		this.getNavigator().setAvoidsWater(true);
-		this.tasks.addTask(6, new AIEatTallGrass(this));
+		this.tasks.addTask(6, new AIEatTallGrass(this, 1.2F));
 		this.tasks.addTask(2, new EntityAIMateTFC(this,this.worldObj, 1.0F));
 		this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
-        
-		animalID = TFC_Time.getTotalTicks() + entityId;
-		hunger = 168000;
-		pregnant = false;
-		pregnancyRequiredTime =(int)(4 * TFC_Time.ticksInMonth);
-		conception = 0;
-		mateSizeMod = 0;
-		sex = rand.nextInt(2);
-		size_mod =(float)Math.sqrt((((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) * 0.01f) + 1F) * (1.0F - 0.1F * sex));
+ 
+		this.animalID = TFC_Time.getTotalTicks() + entityId;
+		
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
+		
+		this.pregnant = false;
+		this.pregnancyRequiredTime =(int)(4 * TFC_Time.ticksInMonth);
+		this.conception = 0;
+		this.mateSizeMod = 0;
+		this.sex = rand.nextInt(2);
+		this.size_mod =(float)Math.sqrt((((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) * 0.01f) + 1F) * (1.0F - 0.1F * sex));
 		
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event. We want spawned
@@ -66,7 +79,7 @@ public class EntityCowRM extends EntityCow implements IAnimal
 		this.setAge((int) TFC_Time.getTotalDays() - getNumberOfDaysToAdult());
 		//For Testing Only(makes spawned animals into babies)
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
-		if(!worldObj.isRemote)
+		if(!this.worldObj.isRemote)
 		{
 			System.out.println("AI Cow RM");
 		}
@@ -77,14 +90,22 @@ public class EntityCowRM extends EntityCow implements IAnimal
 		this.posX = ((EntityLivingBase)mother).posX;
 		this.posY = ((EntityLivingBase)mother).posY;
 		this.posZ = ((EntityLivingBase)mother).posZ;
-		size_mod = (float)Math.sqrt((((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + father_size)/1.95F));
-		size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
+		this.size_mod = (float)Math.sqrt((((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + father_size)/1.95F));
+		this.size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event.
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
 	}
+    /**
+     * Returns true if the newer Entity AI code should be run
+     */
+	@Override
+    public boolean isAIEnabled()
+    {
+        return true;
+    }
 	@Override
 	protected void entityInit()
 	{
@@ -93,20 +114,39 @@ public class EntityCowRM extends EntityCow implements IAnimal
 		this.dataWatcher.addObject(14, Float.valueOf(1.0f));
 		this.dataWatcher.addObject(15, Integer.valueOf(0));
 	}
-
+	@Override
+	public void eatGrassBonus()
+	{
+		//System.out.println("eatGrassBonus");
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
+	}
 	@Override
 	public void onLivingUpdate()
-	{
-		//Handle Hunger ticking
-		if (hunger > 168000)
-		{
-			hunger = 168000;
+	{	
+        if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+        {
+        	//System.out.println("tick");
+        	if(bellyFull)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = true;
+        		this.starving = false;
+        		//System.out.println("hungry");
+        	}
+        	else if(hungry)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = false;
+        		this.starving = true;
+        		//System.out.println("starving");
+        	}
 		}
-		if (hunger > 0)
-		{
-			hunger--;
-		}
-
+    	if(starving)
+    	{
+    		this.attackEntityFrom(DamageSource.starve, 1.0F);
+    	}
 		if(super.inLove > 0){
 			super.inLove = 0;
 			setInLove(true);
@@ -140,7 +180,7 @@ public class EntityCowRM extends EntityCow implements IAnimal
 		super.onLivingUpdate();
 		TFC_Core.PreventEntityDataUpdate = false;
 
-		if (hunger > 144000 && rand.nextInt (100) == 0 && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
 		{
 			this.heal(1);
 		}
@@ -174,38 +214,85 @@ public class EntityCowRM extends EntityCow implements IAnimal
 	{
 		super.applyEntityAttributes();
 		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute(500);//MaxHealth
+		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setAttribute(0.20000000298023224D);
 	}
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound)
 	{
 		super.writeEntityToNBT(par1NBTTagCompound);
-		par1NBTTagCompound.setInteger ("Sex", sex);
-		par1NBTTagCompound.setLong ("Animal ID", animalID);
-		par1NBTTagCompound.setFloat ("Size Modifier", size_mod);
-		par1NBTTagCompound.setInteger ("Hunger", hunger);
-		par1NBTTagCompound.setBoolean("Pregnant", pregnant);
-		par1NBTTagCompound.setFloat("MateSize", mateSizeMod);
-		par1NBTTagCompound.setLong("ConceptionTime",conception);
+		par1NBTTagCompound.setInteger ("Sex", this.sex);
+		par1NBTTagCompound.setLong ("Animal ID", this.animalID);
+		par1NBTTagCompound.setFloat ("Size Modifier", this.size_mod);
+		
+		par1NBTTagCompound.setBoolean("BellyFull", this.bellyFull);
+		par1NBTTagCompound.setBoolean("Hungry", this.hungry);
+		par1NBTTagCompound.setBoolean("Starving", this.starving);
+		
+		par1NBTTagCompound.setBoolean("Pregnant", this.pregnant);
+		par1NBTTagCompound.setFloat("MateSize", this.mateSizeMod);
+		par1NBTTagCompound.setLong("ConceptionTime",this.conception);
 		par1NBTTagCompound.setInteger("Age", getBirthDay());
-		par1NBTTagCompound.setLong("HasMilkTime", hasMilkTime);
+		par1NBTTagCompound.setLong("HasMilkTime", this.hasMilkTime);
 	}
 
 	@Override
 	public void readEntityFromNBT(NBTTagCompound nbt)
 	{
 		super.readEntityFromNBT(nbt);
-		animalID = nbt.getLong ("Animal ID");
-		sex = nbt.getInteger ("Sex");
-		size_mod = nbt.getFloat ("Size Modifier");
-		hunger = nbt.getInteger ("Hunger");
-		pregnant = nbt.getBoolean("Pregnant");
-		mateSizeMod = nbt.getFloat("MateSize");
-		conception = nbt.getLong("ConceptionTime");
-		hasMilkTime = nbt.getLong("HasMilkTime");
+		this.animalID = nbt.getLong ("Animal ID");
+		this.sex = nbt.getInteger ("Sex");
+		this.size_mod = nbt.getFloat ("Size Modifier");
+		this.pregnant = nbt.getBoolean("Pregnant");
+		
+		this.bellyFull = nbt.getBoolean("BellyFull");
+		this.hungry = nbt.getBoolean("Hungry");
+		this.starving = nbt.getBoolean("Starving");
+		
+		this.mateSizeMod = nbt.getFloat("MateSize");
+		this.conception = nbt.getLong("ConceptionTime");
+		this.hasMilkTime = nbt.getLong("HasMilkTime");
 		this.setAge(nbt.getInteger ("Age"));
 	}
+	   /**
+     * Returns the sound this mob makes while it's alive.
+     */
+    protected String getLivingSound()
+    {
+        return "mob.cow.say";
+    }
 
+    /**
+     * Returns the sound this mob makes when it is hurt.
+     */
+    protected String getHurtSound()
+    {
+        return "mob.cow.hurt";
+    }
+
+    /**
+     * Returns the sound this mob makes on death.
+     */
+    protected String getDeathSound()
+    {
+        return "mob.cow.hurt";
+    }
+
+    /**
+     * Plays step sound at given x, y, z for the entity
+     */
+    protected void playStepSound(int par1, int par2, int par3, int par4)
+    {
+        this.playSound("mob.cow.step", 0.15F, 1.0F);
+    }
+
+    /**
+     * Returns the volume for the sounds this mob makes.
+     */
+    protected float getSoundVolume()
+    {
+        return 0.4F;
+    }
 	/**
 	 * Returns the item ID for the item the mob drops on death.
 	 */
@@ -269,7 +356,7 @@ public class EntityCowRM extends EntityCow implements IAnimal
 	@Override
 	public boolean isBreedingItem(ItemStack par1ItemStack)
 	{
-		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack);
+		return !this.pregnant && RMItems.BreedingFood.contains(par1ItemStack);
 	}
 
 	@Override
@@ -363,13 +450,6 @@ public class EntityCowRM extends EntityCow implements IAnimal
 			return false;
 		}
 	}
-	
-	@Override
-	public void eatGrassBonus()
-	{
-		hunger += 24000;
-	}
-
 	@Override
 	public void mate(IAnimal otherAnimal) 
 	{
@@ -418,5 +498,15 @@ public class EntityCowRM extends EntityCow implements IAnimal
 	public void setHunger(int h) 
 	{
 		hunger = h;
+	}
+	@Override
+	public boolean isHungry()
+	{
+		return this.hungry;
+	}
+	@Override
+	public boolean isStarving()
+	{
+		return this.starving;
 	}
 }

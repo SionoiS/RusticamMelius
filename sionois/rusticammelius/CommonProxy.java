@@ -14,10 +14,10 @@ public class CommonProxy
 
 	public void registerTileEntities()
 	{
-		EntityRegistry.registerGlobalEntityID(EntityCowRM.class, "Cow", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
-		EntityRegistry.registerGlobalEntityID(EntitySheepRM.class, "Sheep", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
-		EntityRegistry.registerGlobalEntityID(EntityChickenRM.class, "Chicken", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
-		EntityRegistry.registerGlobalEntityID(EntityPigRM.class, "Pig", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
+		EntityRegistry.registerGlobalEntityID(EntityCowRM.class, "CowRM", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
+		EntityRegistry.registerGlobalEntityID(EntitySheepRM.class, "SheepRM", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
+		EntityRegistry.registerGlobalEntityID(EntityChickenRM.class, "ChickenRM", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
+		EntityRegistry.registerGlobalEntityID(EntityPigRM.class, "PigRM", ModLoader.getUniqueEntityId(), 0xffffff, 0xaaaaaa);
 	}
 
 }
