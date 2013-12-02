@@ -1,16 +1,12 @@
 package sionois.rusticammelius.AI;
 
+import net.minecraft.block.Block;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.world.World;
 import sionois.rusticammelius.Mobs.EntityChickenRM;
 import sionois.rusticammelius.Mobs.IFarmAnimals;
 import TFC.Core.TFC_Core;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockBed;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
-
 
 public class AIEatTallGrass extends EntityAIBase
 {

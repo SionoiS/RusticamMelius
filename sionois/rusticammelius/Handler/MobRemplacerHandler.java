@@ -4,10 +4,12 @@ import sionois.rusticammelius.Mobs.EntityChickenRM;
 import sionois.rusticammelius.Mobs.EntityCowRM;
 import sionois.rusticammelius.Mobs.EntityPigRM;
 import sionois.rusticammelius.Mobs.EntitySheepRM;
+import sionois.rusticammelius.Mobs.IFarmAnimals;
 import TFC.Entities.Mobs.EntityChickenTFC;
 import TFC.Entities.Mobs.EntityCowTFC;
 import TFC.Entities.Mobs.EntityPigTFC;
 import TFC.Entities.Mobs.EntitySheepTFC;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 
@@ -18,7 +20,7 @@ public class MobRemplacerHandler
 	{
         if (!event.world.isRemote)
         {
-            if (event.entityLiving instanceof EntityCowTFC)
+            if ((event.entityLiving instanceof EntityCowTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
             	EntityCowTFC cowTFC = (EntityCowTFC) event.entityLiving;
             	EntityCowRM cowRM = new EntityCowRM(event.world);
@@ -27,7 +29,7 @@ public class MobRemplacerHandler
             	cowTFC.setDead();
             	//System.out.println("Cow Remplaced");
             }
-            if (event.entityLiving instanceof EntitySheepTFC)
+            else if ((event.entityLiving instanceof EntitySheepTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
             	EntitySheepTFC sheepTFC = (EntitySheepTFC) event.entityLiving;
             	EntitySheepRM sheepRM = new EntitySheepRM(event.world);
@@ -36,7 +38,7 @@ public class MobRemplacerHandler
             	sheepTFC.setDead();
             	//System.out.println("Sheep Remplaced");
             }
-            if (event.entityLiving instanceof EntityPigTFC)
+            else if ((event.entityLiving instanceof EntityPigTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
             	EntityPigTFC pigTFC = (EntityPigTFC) event.entityLiving;
             	EntityPigRM pigRM = new EntityPigRM(event.world);
@@ -45,7 +47,7 @@ public class MobRemplacerHandler
             	pigTFC.setDead();
             	//System.out.println("Pig Remplaced");
             }
-            if (event.entityLiving instanceof EntityChickenTFC)
+            else if ((event.entityLiving instanceof EntityChickenTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
             	EntityChickenTFC chickenTFC = (EntityChickenTFC) event.entityLiving;
             	EntityChickenRM chickenRM = new EntityChickenRM(event.world);
