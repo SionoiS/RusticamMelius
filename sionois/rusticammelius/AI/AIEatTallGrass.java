@@ -95,7 +95,7 @@ public class AIEatTallGrass extends EntityAIBase
 		 
 		 this.eatGrassTick = Math.max(0, this.eatGrassTick - 1);
 
-		 if(this.theEntity.getDistanceSq((double)this.edibleBlockX, (double)(this.edibleBlockY), (double)this.edibleBlockZ) > 1.25D)
+		 if(this.theEntity.getDistanceSq((double)this.edibleBlockX, (double)(this.edibleBlockY), (double)this.edibleBlockZ) > 1.5D)
 		 {
 			 //System.out.println("tryMoveToXYZ");
 			 this.theEntity.getNavigator().tryMoveToXYZ((double)((float)this.edibleBlockX) + 0.5D, (double)(this.edibleBlockY), (double)((float)this.edibleBlockZ) + 0.5D, this.field_75404_b);

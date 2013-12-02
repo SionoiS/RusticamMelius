@@ -2,6 +2,14 @@ package sionois.rusticammelius.Mobs;
 
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.ai.EntityAIFollowParent;
+import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAIMate;
+import net.minecraft.entity.ai.EntityAIPanic;
+import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAIWander;
+import net.minecraft.entity.ai.EntityAIWatchClosest;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -11,6 +19,7 @@ import sionois.rusticammelius.AI.AIEatTallGrass;
 import TFC.API.Entities.IAnimal;
 import TFC.Core.TFC_Core;
 import TFC.Core.TFC_Time;
+import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Entities.Mobs.EntityCowTFC;
 
 public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
@@ -24,10 +33,20 @@ public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
 	public EntityCowRM(World par1World)
 	{
 		super(par1World);
+		this.tasks.taskEntries.clear();
 		this.getNavigator().setAvoidsWater(true);
-		this.tasks.addTask(6, new AIEatTallGrass(this, 1.2F));
-		//this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
- 
+        this.tasks.addTask(0, new EntityAISwimming(this));
+        this.tasks.addTask(1, new EntityAIPanic(this, 2.0D));
+		
+		this.tasks.addTask(2, new AIEatTallGrass(this, 1.2F));
+
+		this.tasks.addTask(3, new EntityAIMateTFC(this,this.worldObj, 1.0F));
+        this.tasks.addTask(4, new EntityAIFollowParent(this, 1.25D));
+        this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
+        this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+        this.tasks.addTask(7, new EntityAILookIdle(this));
+		
+		
 		this.animalID = TFC_Time.getTotalTicks() + entityId;
 		
 		this.bellyFull = true;

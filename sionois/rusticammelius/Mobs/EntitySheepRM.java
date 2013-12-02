@@ -2,6 +2,13 @@ package sionois.rusticammelius.Mobs;
 
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.ai.EntityAIFollowParent;
+import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAIPanic;
+import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAIWander;
+import net.minecraft.entity.ai.EntityAIWatchClosest;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
@@ -29,13 +36,21 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 
 	public EntitySheepRM(World par1World)
 	{
-		super(par1World);
+		super(par1World);	
 		this.setSize(0.9F, 1.3F);
+		this.tasks.taskEntries.clear();
 		this.getNavigator().setAvoidsWater(true);
-		this.tasks.removeTask(this.aiEatGrass);
-		//this.tasks.removeTask(new EntityAIMateTFC((IAnimal) super.getEntity(),worldObj, 1.0f));
-		this.tasks.addTask(5, this.aiEatTallGrass);
-		//this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
+		this.tasks.addTask(0, new EntityAISwimming(this));
+        this.tasks.addTask(1, new EntityAIPanic(this, 1.25D));
+        
+        this.tasks.addTask(2, this.aiEatTallGrass);
+        
+        this.tasks.addTask(3, new EntityAIMateTFC(this,worldObj, 1.0f));
+        this.tasks.addTask(4, new EntityAIFollowParent(this, 1.1D));
+        this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
+        this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+        this.tasks.addTask(7, new EntityAILookIdle(this));
+		
 
 		this.bellyFull = true;
 		this.hungry = false;
