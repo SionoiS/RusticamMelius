@@ -28,16 +28,15 @@ public class RusticamMelius
      
      @EventHandler     
      public void preInit(FMLPreInitializationEvent event) 
-     {               
-             loadConfig();
-             
+     {                       
              proxy.registerTileEntities();
-
      }
      
      @EventHandler
      public void load(FMLInitializationEvent event) 
      {
+         loadConfig();
+         
     	 Localization.addLocalization("/assets/rusticammelius/lang/", "en_US");
      
          Recipes.addRecipes();

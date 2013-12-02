@@ -9,12 +9,20 @@ import TFC.TFCItems;
 
 public class RMItems {
 
-    public static final Set<Item> BreedingFood = new HashSet<Item>(Arrays.asList( 
-            TFCItems.WheatGrain, 
-            TFCItems.RyeGrain, 
-            TFCItems.RiceGrain, 
-            TFCItems.BarleyGrain, 
-            TFCItems.OatGrain));
+    public static final Set<Integer> BreedingFood = new HashSet<Integer>(Arrays.asList(
+            TFCItems.WheatGrain.itemID,
+            TFCItems.RyeGrain.itemID,
+            TFCItems.RiceGrain.itemID,
+            TFCItems.BarleyGrain.itemID, 
+            TFCItems.OatGrain.itemID
+            ));
+    
+    public static final Set<Integer> BreedingWolfFood = new HashSet<Integer>(Arrays.asList( 
+            TFCItems.muttonRaw.itemID, 
+            Item.porkRaw.itemID, 
+            Item.beefRaw.itemID,
+            Item.chickenRaw.itemID
+            ));
     
 	public static void LoadItems()
 	{

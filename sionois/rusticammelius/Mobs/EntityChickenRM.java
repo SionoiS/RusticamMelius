@@ -35,26 +35,22 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 	public EntityChickenRM(World par1World)
 	{
 		super(par1World);
-		this.setSize(0.3F, 0.7F);
-		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
 		this.tasks.taskEntries.clear();
 		this.getNavigator().setAvoidsWater(true);
         this.tasks.addTask(0, new EntityAISwimming(this));
-        this.tasks.addTask(1, new EntityAIPanic(this, 1.4D));
-        
-        this.tasks.addTask(2, new AIEatTallGrass(this, 1.2F));
-        
+        this.tasks.addTask(1, new EntityAIPanic(this, 1.4D));       
+        this.tasks.addTask(2, new AIEatTallGrass(this, 1.2F));      
         this.tasks.addTask(3, new EntityAIMateTFC(this,worldObj, 1.0f));
         this.tasks.addTask(4, new EntityAIFollowParent(this, 1.1D));
         this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
         this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
         this.tasks.addTask(7, new EntityAILookIdle(this));
 
-
 		this.bellyFull = true;
 		this.hungry = false;
 		this.starving = false;
-
+		
+		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
 		animalID = TFC_Time.getTotalTicks() + entityId;
 		mateSizeMod = 1f;
 		sex = rand.nextInt(2);
@@ -150,14 +146,13 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 	}
     public boolean isBreedingItem(ItemStack par1ItemStack)
     {
-        return par1ItemStack != null && RMItems.BreedingFood.contains(par1ItemStack.getItem());
+        return par1ItemStack != null && RMItems.BreedingFood.contains(par1ItemStack.itemID);
     }
 	@Override
 	public EntityAgeable createChild(EntityAgeable entityageable) 
 	{
-		return new EntityChickenRM(worldObj, this, mateSizeMod);
+		return null;
 	}
-
 	@Override
 	public EntityAgeable createChildTFC(EntityAgeable entityageable) {
 		return new EntityChickenRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));

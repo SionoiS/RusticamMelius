@@ -36,23 +36,19 @@ public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
 		this.tasks.taskEntries.clear();
 		this.getNavigator().setAvoidsWater(true);
         this.tasks.addTask(0, new EntityAISwimming(this));
-        this.tasks.addTask(1, new EntityAIPanic(this, 2.0D));
-		
+        this.tasks.addTask(1, new EntityAIPanic(this, 2.0D));		
 		this.tasks.addTask(2, new AIEatTallGrass(this, 1.2F));
-
 		this.tasks.addTask(3, new EntityAIMateTFC(this,this.worldObj, 1.0F));
         this.tasks.addTask(4, new EntityAIFollowParent(this, 1.25D));
         this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
         this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
-        this.tasks.addTask(7, new EntityAILookIdle(this));
-		
-		
-		this.animalID = TFC_Time.getTotalTicks() + entityId;
-		
+        this.tasks.addTask(7, new EntityAILookIdle(this));	
+			
 		this.bellyFull = true;
 		this.hungry = false;
 		this.starving = false;
 		
+		this.animalID = TFC_Time.getTotalTicks() + entityId;
 		this.pregnant = false;
 		this.pregnancyRequiredTime =(int)(4 * TFC_Time.ticksInMonth);
 		this.conception = 0;
@@ -158,7 +154,7 @@ public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
 	@Override
 	public boolean isBreedingItem(ItemStack par1ItemStack)
 	{
-		return !this.pregnant && RMItems.BreedingFood.contains(par1ItemStack.getItem());
+		return !this.pregnant && RMItems.BreedingFood.contains(par1ItemStack.itemID);
 	}
 	@Override
 	public EntityAgeable createChildTFC(EntityAgeable entityageable) 

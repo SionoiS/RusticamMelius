@@ -4,11 +4,13 @@ import sionois.rusticammelius.Mobs.EntityChickenRM;
 import sionois.rusticammelius.Mobs.EntityCowRM;
 import sionois.rusticammelius.Mobs.EntityPigRM;
 import sionois.rusticammelius.Mobs.EntitySheepRM;
+import sionois.rusticammelius.Mobs.EntityWolfRM;
 import sionois.rusticammelius.Mobs.IFarmAnimals;
 import TFC.Entities.Mobs.EntityChickenTFC;
 import TFC.Entities.Mobs.EntityCowTFC;
 import TFC.Entities.Mobs.EntityPigTFC;
 import TFC.Entities.Mobs.EntitySheepTFC;
+import TFC.Entities.Mobs.EntityWolfTFC;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -20,6 +22,15 @@ public class MobRemplacerHandler
 	{
         if (!event.world.isRemote)
         {
+        	if ((event.entityLiving instanceof EntityChickenTFC) && !(event.entityLiving instanceof IFarmAnimals))
+            {
+            	EntityChickenTFC chickenTFC = (EntityChickenTFC) event.entityLiving;
+            	EntityChickenRM chickenRM = new EntityChickenRM(event.world);
+            	chickenRM.setLocationAndAngles(chickenTFC.posX, chickenTFC.posY, chickenTFC.posZ, chickenTFC.rotationYaw, chickenTFC.rotationPitch);
+            	event.world.spawnEntityInWorld(chickenRM);
+            	chickenTFC.setDead();
+            	//System.out.println("Chicken Remplaced");
+            }
             if ((event.entityLiving instanceof EntityCowTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
             	EntityCowTFC cowTFC = (EntityCowTFC) event.entityLiving;
@@ -28,15 +39,6 @@ public class MobRemplacerHandler
             	event.world.spawnEntityInWorld(cowRM);
             	cowTFC.setDead();
             	//System.out.println("Cow Remplaced");
-            }
-            else if ((event.entityLiving instanceof EntitySheepTFC) && !(event.entityLiving instanceof IFarmAnimals))
-            {
-            	EntitySheepTFC sheepTFC = (EntitySheepTFC) event.entityLiving;
-            	EntitySheepRM sheepRM = new EntitySheepRM(event.world);
-            	sheepRM.setLocationAndAngles(sheepTFC.posX, sheepTFC.posY, sheepTFC.posZ, sheepTFC.rotationYaw, sheepTFC.rotationPitch);
-            	event.world.spawnEntityInWorld(sheepRM);
-            	sheepTFC.setDead();
-            	//System.out.println("Sheep Remplaced");
             }
             else if ((event.entityLiving instanceof EntityPigTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
@@ -47,14 +49,23 @@ public class MobRemplacerHandler
             	pigTFC.setDead();
             	//System.out.println("Pig Remplaced");
             }
-            else if ((event.entityLiving instanceof EntityChickenTFC) && !(event.entityLiving instanceof IFarmAnimals))
+            else if ((event.entityLiving instanceof EntitySheepTFC) && !(event.entityLiving instanceof IFarmAnimals))
             {
-            	EntityChickenTFC chickenTFC = (EntityChickenTFC) event.entityLiving;
-            	EntityChickenRM chickenRM = new EntityChickenRM(event.world);
-            	chickenRM.setLocationAndAngles(chickenTFC.posX, chickenTFC.posY, chickenTFC.posZ, chickenTFC.rotationYaw, chickenTFC.rotationPitch);
-            	event.world.spawnEntityInWorld(chickenRM);
-            	chickenTFC.setDead();
-            	//System.out.println("Chicken Remplaced");
+            	EntitySheepTFC sheepTFC = (EntitySheepTFC) event.entityLiving;
+            	EntitySheepRM sheepRM = new EntitySheepRM(event.world);
+            	sheepRM.setLocationAndAngles(sheepTFC.posX, sheepTFC.posY, sheepTFC.posZ, sheepTFC.rotationYaw, sheepTFC.rotationPitch);
+            	event.world.spawnEntityInWorld(sheepRM);
+            	sheepTFC.setDead();
+            	//System.out.println("Sheep Remplaced");
+            }
+            else if ((event.entityLiving instanceof EntityWolfTFC) && !(event.entityLiving instanceof IFarmAnimals))
+            {
+            	EntityWolfTFC wolfTFC = (EntityWolfTFC) event.entityLiving;
+            	EntityWolfRM wolfRM = new EntityWolfRM(event.world);
+            	wolfRM.setLocationAndAngles(wolfTFC.posX, wolfTFC.posY, wolfTFC.posZ, wolfTFC.rotationYaw, wolfTFC.rotationPitch);
+            	event.world.spawnEntityInWorld(wolfRM);
+            	wolfTFC.setDead();
+            	//System.out.println("Wolf Remplaced");
             }
         }
 	}

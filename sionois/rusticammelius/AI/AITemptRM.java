@@ -70,7 +70,7 @@ public class AITemptRM extends EntityAIBase
             else
             {
                 ItemStack itemstack = this.temptingPlayer.getCurrentEquippedItem();
-                return itemstack == null ? false : RMItems.BreedingFood.contains(itemstack);
+                return itemstack == null ? false : RMItems.BreedingFood.contains(itemstack.itemID);
             }
         }
     }

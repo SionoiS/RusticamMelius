@@ -36,22 +36,18 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 
 	public EntitySheepRM(World par1World)
 	{
-		super(par1World);	
-		this.setSize(0.9F, 1.3F);
+		super(par1World);
 		this.tasks.taskEntries.clear();
 		this.getNavigator().setAvoidsWater(true);
 		this.tasks.addTask(0, new EntityAISwimming(this));
-        this.tasks.addTask(1, new EntityAIPanic(this, 1.25D));
-        
-        this.tasks.addTask(2, this.aiEatTallGrass);
-        
+        this.tasks.addTask(1, new EntityAIPanic(this, 1.25D));    
+        this.tasks.addTask(2, this.aiEatTallGrass);     
         this.tasks.addTask(3, new EntityAIMateTFC(this,worldObj, 1.0f));
         this.tasks.addTask(4, new EntityAIFollowParent(this, 1.1D));
         this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
         this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
         this.tasks.addTask(7, new EntityAILookIdle(this));
 		
-
 		this.bellyFull = true;
 		this.hungry = false;
 		this.starving = false;
@@ -74,7 +70,7 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 		//this.setGrowingAge((int) TFC_Time.getTotalDays());
 		if(!this.worldObj.isRemote)
 		{
-			System.out.println("Sheep RM");
+			//System.out.println("Sheep RM");
 		}
 	}
 	public EntitySheepRM(World par1World,IAnimal mother, float F_size)
@@ -104,9 +100,9 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 		
 		if(!this.worldObj.isRemote)
 		{
-			if (this.worldObj.getTotalWorldTime() % 600L == 0L)
+			if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
 			{
-				System.out.println("tick");
+				//System.out.println("tick");
 				if(bellyFull)
 				{
 					this.bellyFull = false;
@@ -153,7 +149,7 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 	@Override
 	public boolean isBreedingItem(ItemStack par1ItemStack)
 	{
-		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack.getItem());
+		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack.itemID);
 	}
 	@Override
 	public void writeEntityToNBT(NBTTagCompound nbt)
