@@ -18,7 +18,7 @@ import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Entities.Mobs.EntityBear;
 import TFC.Entities.Mobs.EntityCowTFC;
 
-public class EntityWildCow extends EntityCowTFC implements IWildAnimals
+public class EntityWildCow extends EntityCowRM implements IWildAnimals
 {
 	int degreeOfDiversion = 2;
 	
@@ -72,26 +72,11 @@ public class EntityWildCow extends EntityCowTFC implements IWildAnimals
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
 	}
-	@Override
-    public boolean isAIEnabled()
-    {
-        return true;
-    }
 	private float getPercentGrown(IAnimal animal)
 	{
 		float birth = animal.getBirthDay();
 		float time = (int) TFC_Time.getTotalDays();
 		float percent =(time-birth)/animal.getNumberOfDaysToAdult();
 		return Math.min(percent, 1f);
-	}
-	@Override
-	public boolean isBreedingItem(ItemStack par1ItemStack)
-	{
-		return !this.pregnant && RMItems.BreedingFood.contains(par1ItemStack.itemID);
-	}
-	@Override
-	public EntityAgeable createChildTFC(EntityAgeable entityageable) 
-	{
-		return new EntityCowRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));
 	}
 }

@@ -18,7 +18,7 @@ import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Entities.Mobs.EntityBear;
 import TFC.Entities.Mobs.EntitySheepTFC;
 
-public class EntityWildSheep extends EntitySheepTFC implements IWildAnimals
+public class EntityWildSheep extends EntitySheepRM implements IWildAnimals
 {
 	int degreeOfDiversion = 2;
 
@@ -71,25 +71,11 @@ public class EntityWildSheep extends EntitySheepTFC implements IWildAnimals
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
 	}
-	@Override
-    public boolean isAIEnabled()
-    {
-        return true;
-    }
 	private float getPercentGrown(IAnimal animal)
 	{
 		float birth = animal.getBirthDay();
 		float time = (int) TFC_Time.getTotalDays();
 		float percent =(time-birth)/animal.getNumberOfDaysToAdult();
 		return Math.min(percent, 1f);
-	}
-	@Override
-	public boolean isBreedingItem(ItemStack par1ItemStack)
-	{
-		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack.itemID);
-	}
-	@Override
-	public EntityAgeable createChildTFC(EntityAgeable entityageable) {
-		return new EntitySheepRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));
 	}
 }

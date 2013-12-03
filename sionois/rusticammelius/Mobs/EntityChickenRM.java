@@ -19,13 +19,19 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import TFC.API.Entities.IAnimal;
+import TFC.API.Entities.IAnimal.GenderEnum;
 import TFC.Core.TFC_Core;
 import TFC.Core.TFC_Time;
 import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Entities.Mobs.EntityChickenTFC;
+import TFC.Entities.Mobs.EntityPigTFC;
 
 public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 {
+	protected boolean pregnant;
+	protected int pregnancyRequiredTime;
+	protected long timeOfConception;
+	
 	private boolean bellyFull;
 	private boolean hungry;
 	private boolean starving;
@@ -52,6 +58,9 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		
 		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
 		animalID = TFC_Time.getTotalTicks() + entityId;
+		pregnant = false;
+		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
+		timeOfConception = 0;
 		mateSizeMod = 1f;
 		sex = rand.nextInt(2);
 		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
@@ -88,6 +97,28 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
     {
         return true;
     }
+	@Override
+	public void onLivingUpdate()
+	{
+		super.onLivingUpdate();
+		
+		if(isPregnant()) 
+		{
+			if(TFC_Time.getTotalTicks() >= timeOfConception + pregnancyRequiredTime)
+			{
+				for(int i = 0; i < 8 + rand.nextInt(5);i++)
+				{
+					EntityChickenRM baby = (EntityChickenRM) createChildTFC(this);
+					baby.setLocationAndAngles(posX+(rand.nextFloat()-0.5F)*2F,posY,posZ+(rand.nextFloat()-0.5F)*2F, 0.0F, 0.0F);
+					baby.rotationYawHead = baby.rotationYaw;
+					baby.renderYawOffset = baby.rotationYaw;
+					worldObj.spawnEntityInWorld(baby);
+					baby.setAge((int)TFC_Time.getTotalDays());
+				}
+				pregnant = false;
+			}
+		}
+	}
 	@Override
 	public void eatGrassBonus()
 	{
@@ -135,6 +166,8 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		nbt.setBoolean("BellyFull", this.bellyFull);
 		nbt.setBoolean("Hungry", this.hungry);
 		nbt.setBoolean("Starving", this.starving);
+		nbt.setBoolean("Pregnant", pregnant);
+		nbt.setLong("ConceptionTime",timeOfConception);
 	}
 	@Override
 	public void readEntityFromNBT(NBTTagCompound nbt)
@@ -143,6 +176,8 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		this.bellyFull = nbt.getBoolean("BellyFull");
 		this.hungry = nbt.getBoolean("Hungry");
 		this.starving = nbt.getBoolean("Starving");
+		pregnant = nbt.getBoolean("Pregnant");
+		timeOfConception = nbt.getLong("ConceptionTime");
 	}
     public boolean isBreedingItem(ItemStack par1ItemStack)
     {
@@ -156,6 +191,44 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 	@Override
 	public EntityAgeable createChildTFC(EntityAgeable entityageable) {
 		return new EntityChickenRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));
+	}
+	@Override
+	public boolean interact(EntityPlayer par1EntityPlayer)
+	{
+	    ItemStack itemstack = par1EntityPlayer.inventory.getCurrentItem();
+
+		if(!worldObj.isRemote)
+		{
+			if(getGender()==GenderEnum.FEMALE && pregnant)
+			{
+				par1EntityPlayer.addChatMessage("Pregnant");
+			}
+		}
+		if(itemstack != null && this.isBreedingItem(itemstack) && this.getGrowingAge() == 0 && !this.isPregnant())
+		{
+			this.setInLove(true);
+		}
+		return super.interact(par1EntityPlayer);
+	
+	}
+	@Override
+	public void mate(IAnimal otherAnimal) 
+	{
+		if (getGender() == GenderEnum.MALE)
+		{
+			otherAnimal.mate(this);
+			return;
+		}
+		timeOfConception = TFC_Time.getTotalTicks();
+		pregnant = true;
+		resetInLove();
+		otherAnimal.setInLove(false);
+		mateSizeMod = otherAnimal.getSize();
+	}
+	@Override
+	public boolean isPregnant() 
+	{
+		return pregnant;
 	}
 	@Override
 	public boolean isHungry()

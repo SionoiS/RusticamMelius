@@ -18,7 +18,7 @@ import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Entities.Mobs.EntityBear;
 import TFC.Entities.Mobs.EntityPigTFC;
 
-public class EntityWildPig extends EntityPigTFC implements IWildAnimals
+public class EntityWildPig extends EntityPigRM implements IWildAnimals
 {
 	int degreeOfDiversion = 2;
 
@@ -71,20 +71,5 @@ public class EntityWildPig extends EntityPigTFC implements IWildAnimals
 		//	than number of ticks to next growth event.
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
-	}
-	@Override
-    public boolean isAIEnabled()
-    {
-        return true;
-    }
-	@Override
-	public boolean isBreedingItem(ItemStack par1ItemStack)
-	{
-		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack.itemID);
-	}
-	@Override
-	public EntityAgeable createChildTFC(EntityAgeable entityageable) 
-	{
-		return new EntityPigRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));
 	}
 }

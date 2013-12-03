@@ -18,7 +18,7 @@ import TFC.Entities.AI.EntityAIMateTFC;
 import TFC.Entities.Mobs.EntityBear;
 import TFC.Entities.Mobs.EntityChickenTFC;
 
-public class EntityWildChicken extends EntityChickenTFC implements IWildAnimals
+public class EntityWildChicken extends EntityChickenRM implements IWildAnimals
 {
 	int degreeOfDiversion = 2;
 	
@@ -38,6 +38,9 @@ public class EntityWildChicken extends EntityChickenTFC implements IWildAnimals
 
 		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
 		animalID = TFC_Time.getTotalTicks() + entityId;
+		pregnant = false;
+		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
+		timeOfConception = 0;
 		mateSizeMod = 1f;
 		sex = rand.nextInt(2);
 		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
@@ -68,25 +71,5 @@ public class EntityWildChicken extends EntityChickenTFC implements IWildAnimals
 		//	than number of ticks to next growth event.
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
-	}
-	@Override
-    public boolean isAIEnabled()
-    {
-        return true;
-    }
-	@Override
-	public void eatGrassBonus(){}
-    public boolean isBreedingItem(ItemStack par1ItemStack)
-    {
-        return par1ItemStack != null && RMItems.BreedingFood.contains(par1ItemStack.itemID);
-    }
-	@Override
-	public EntityAgeable createChild(EntityAgeable entityageable) 
-	{
-		return null;
-	}
-	@Override
-	public EntityAgeable createChildTFC(EntityAgeable entityageable) {
-		return new EntityChickenRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));
 	}
 }
