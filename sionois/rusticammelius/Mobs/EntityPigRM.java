@@ -36,7 +36,7 @@ public class EntityPigRM extends EntityPigTFC implements IFarmAnimals
 		this.getNavigator().setAvoidsWater(true);
         this.tasks.addTask(0, new EntityAISwimming(this));
         this.tasks.addTask(1, new EntityAIPanic(this, 1.25D));	
-		this.tasks.addTask(2, new AIEatTallGrass(this, 1.2F));	
+		this.tasks.addTask(2, new AIEatTallGrass(this, 1.2D));	
 		this.tasks.addTask(3, new EntityAIMateTFC(this, worldObj, 1.0f));
         this.tasks.addTask(4, new EntityAIFollowParent(this, 1.1D));
         this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
