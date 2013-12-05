@@ -28,27 +28,26 @@ public class RusticamMelius
      
      @EventHandler     
      public void preInit(FMLPreInitializationEvent event) 
-     {               
-             loadConfig();
-             
-             proxy.registerTileEntities();
-
-     }
-     
+     {
+    	 loadConfig();  
+    	 
+         proxy.registerTileEntities();
+     }   
      @EventHandler
      public void load(FMLInitializationEvent event) 
      {
     	 Localization.addLocalization("/assets/rusticammelius/lang/", "en_US");
      
          Recipes.addRecipes();
+                  
+         proxy.registerRenderInformation();
          
-         proxy.registerRenderInformation();                                           
-     }
-     
+         MinecraftForge.EVENT_BUS.register(new MobRemplacerHandler());                                                             
+     }  
      @EventHandler
      public void postInit(FMLPostInitializationEvent event) 
      {
-             MinecraftForge.EVENT_BUS.register(new MobRemplacerHandler());
+                        
      }
      public void loadConfig() 
      {

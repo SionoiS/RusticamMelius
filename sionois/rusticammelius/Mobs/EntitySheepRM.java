@@ -1,75 +1,55 @@
 package sionois.rusticammelius.Mobs;
 
-import java.util.ArrayList;
-
 import net.minecraft.entity.EntityAgeable;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIFollowParent;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAIPanic;
 import net.minecraft.entity.ai.EntityAISwimming;
 import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
-import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import sionois.rusticammelius.RMItems;
 import sionois.rusticammelius.AI.AIEatTallGrass;
-import sionois.rusticammelius.AI.AITemptRM;
 import TFC.TFCItems;
 import TFC.API.Entities.IAnimal;
-import TFC.API.Entities.IAnimal.GenderEnum;
 import TFC.Core.TFC_Core;
 import TFC.Core.TFC_Time;
 import TFC.Entities.AI.EntityAIMateTFC;
-import TFC.Items.Tools.ItemCustomKnife;
+import TFC.Entities.Mobs.EntitySheepTFC;
 
-public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
+public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 {
-	/**
-	 * Holds the RGB table of the sheep colors - in OpenGL glColor3f values - used to render the sheep colored fleece.
-	 */
-	public static final float[][] fleeceColorTable = new float[][] {{1.0F, 1.0F, 1.0F}, {0.95F, 0.7F, 0.2F}, {0.9F, 0.5F, 0.85F}, {0.6F, 0.7F, 0.95F}, {0.9F, 0.9F, 0.2F}, {0.5F, 0.8F, 0.1F}, {0.95F, 0.7F, 0.8F}, {0.3F, 0.3F, 0.3F}, {0.6F, 0.6F, 0.6F}, {0.3F, 0.6F, 0.7F}, {0.7F, 0.4F, 0.9F}, {0.2F, 0.4F, 0.8F}, {0.5F, 0.4F, 0.3F}, {0.4F, 0.5F, 0.2F}, {0.8F, 0.3F, 0.3F}, {0.1F, 0.1F, 0.1F}};
-
-	/**
-	 * Used to control movement as well as wool regrowth. Set to 40 on handleHealthUpdate and counts down with each
-	 * tick.
-	 */
 	private int sheepTimer;
 	
 	private AIEatTallGrass aiEatTallGrass = new AIEatTallGrass(this, 1.2F);
-	protected long animalID;
-	protected int sex = 0;
-	protected boolean bellyFull;
-	protected boolean hungry;
-	protected boolean starving;
-	protected int hunger = 168000;
-	protected long hasMilkTime;
-	protected boolean pregnant;
-	protected int pregnancyRequiredTime;
-	protected long timeOfConception;
-	protected float mateSizeMod;
-	public float size_mod = 1f;
-	public boolean inLove;
+
+	private boolean bellyFull;
+	private boolean hungry;
+	private boolean starving;
+	
 	int degreeOfDiversion = 2;
 
 	public EntitySheepRM(World par1World)
 	{
 		super(par1World);
-		this.setSize(0.9F, 1.3F);
+		this.tasks.taskEntries.clear();
 		this.getNavigator().setAvoidsWater(true);
-		this.tasks.addTask(6, this.aiEatTallGrass);
-		this.tasks.addTask(2, new EntityAIMateTFC(this,this.worldObj, 1.0F));
-		//this.tasks.addTask(3, new AITemptRM(this, 1.2F, false));
-
-		this.bellyFull = false;
-		this.hungry = true;
+		this.tasks.addTask(0, new EntityAISwimming(this));
+        this.tasks.addTask(1, new EntityAIPanic(this, 1.25D));    
+        this.tasks.addTask(2, this.aiEatTallGrass);     
+        this.tasks.addTask(3, new EntityAIMateTFC(this,worldObj, 1.0f));
+        this.tasks.addTask(4, new EntityAIFollowParent(this, 1.1D));
+        this.tasks.addTask(5, new EntityAIWander(this, 1.0D));
+        this.tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 6.0F));
+        this.tasks.addTask(7, new EntityAILookIdle(this));
+		
+		this.bellyFull = true;
+		this.hungry = false;
 		this.starving = false;
 		
 		animalID = TFC_Time.getTotalTicks() + entityId;
@@ -113,28 +93,43 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
         return true;
     }
 	@Override
-	protected void entityInit()
-	{
-		super.entityInit();
-		this.dataWatcher.addObject(13, new Integer(0));
-		this.dataWatcher.addObject(14, new Float(1));
-		this.dataWatcher.addObject(15, Integer.valueOf(0));
-	}
-
-	@Override
-	protected void applyEntityAttributes()
-	{
-		super.applyEntityAttributes();
-		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute(400);//MaxHealth
-	}
-
-	@Override
 	protected void updateAITasks()
 	{
 		this.sheepTimer = this.aiEatTallGrass.getEatGrassTick();
 		super.updateAITasks();
+		
+		if(!this.worldObj.isRemote)
+		{
+			if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+			{
+				//System.out.println("tick");
+				if(bellyFull)
+				{
+					this.bellyFull = false;
+					this.hungry = true;
+					this.starving = false;
+					//System.out.println("hungry");
+				}
+				else if(hungry)
+				{
+					this.bellyFull = false;
+					this.hungry = false;
+					this.starving = true;
+					//System.out.println("starving");
+				}
+			}
+        
+			if(starving)
+			{
+				this.attackEntityFrom(DamageSource.starve, 1.0F);
+			}
+    	
+			if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+			{
+				this.heal(1);
+			}
+		}
 	}
-
 	private float getPercentGrown(IAnimal animal)
 	{
 		float birth = animal.getBirthDay();
@@ -145,357 +140,36 @@ public class EntitySheepRM extends EntitySheep implements IAnimal, IFarmAnimals
 	@Override
 	public void eatGrassBonus()
 	{
-		//System.out.println("eatGrassBonus");
+		System.out.println("eatGrassBonus");
 		this.setSheared(false);
 		this.bellyFull = true;
 		this.hungry = false;
 		this.starving = false;
 	}
 	@Override
-	public void onLivingUpdate()
-	{
-		if (this.worldObj.isRemote)
-		{
-			this.sheepTimer = Math.max(0, this.sheepTimer - 1);
-		}
-        if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
-        {
-        	//System.out.println("tick");
-        	if(bellyFull)
-        	{
-        		this.bellyFull = false;
-        		this.hungry = true;
-        		this.starving = false;
-        		//System.out.println("hungry");
-        	}
-        	else if(hungry)
-        	{
-        		this.bellyFull = false;
-        		this.hungry = false;
-        		this.starving = true;
-        		//System.out.println("starving");
-        	}
-		}
-    	if(starving)
-    	{
-    		this.attackEntityFrom(DamageSource.starve, 1.0F);
-    	}
-		if(super.inLove > 0){
-			super.inLove = 0;
-			setInLove(true);
-		}
-
-		syncData();
-		if(isAdult()){
-			setGrowingAge(0);
-		}
-		else{
-			setGrowingAge(-1);
-		}
-
-		if(isPregnant())
-		{
-			if(TFC_Time.getTotalTicks() >= timeOfConception + pregnancyRequiredTime)
-			{
-				int i = rand.nextInt(3) + 1;
-				for (int x = 0; x<i;x++)
-				{
-					EntitySheepRM baby = new EntitySheepRM(worldObj, this, mateSizeMod);
-					baby.setLocationAndAngles (posX+(rand.nextFloat()-0.5F)*2F,posY,posZ+(rand.nextFloat()-0.5F)*2F, 0.0F, 0.0F);
-					baby.rotationYawHead = baby.rotationYaw;
-					baby.renderYawOffset = baby.rotationYaw;
-					worldObj.spawnEntityInWorld(baby);
-					baby.setAge((int)TFC_Time.getTotalDays());
-				}
-				pregnant = false;
-			}
-		}
-
-		/**
-		 * This Cancels out the changes made to growingAge by EntityAgeable
-		 * */
-		TFC_Core.PreventEntityDataUpdate = true;
-		super.onLivingUpdate();
-		TFC_Core.PreventEntityDataUpdate = false;
-
-		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
-		{
-			this.heal(1);
-		}
-	}
-
-	public void syncData()
-	{
-		if(dataWatcher!= null)
-		{
-			if(!this.worldObj.isRemote){
-				this.dataWatcher.updateObject(13, Integer.valueOf(sex));
-				this.dataWatcher.updateObject(14, Float.valueOf(size_mod));
-			}
-			else{
-				sex = this.dataWatcher.getWatchableObjectInt(13);
-				size_mod = this.dataWatcher.getWatchableObjectFloat(14);
-			}
-		}
-	}
-	/**
-	 * Drop 0-2 items of this living's type
-	 */
-	@Override
-	protected void dropFewItems(boolean par1, int par2)
-	{
-		float ageMod = TFC_Core.getPercentGrown(this);
-		if(this.isAdult()){
-			if(!this.getSheared()) {
-				this.entityDropItem(new ItemStack(TFCItems.SheepSkin,1), 0.0F);
-			} else {
-				this.dropItem(TFCItems.Hide.itemID,1);
-			}
-			this.dropItem(Item.bone.itemID, rand.nextInt(5)+2);
-		}
-
-		if (this.isBurning()) {
-			this.dropItem(TFCItems.muttonCooked.itemID,(int)(ageMod*this.size_mod *(5+rand.nextInt(5))));
-		} else {
-			this.dropItem(TFCItems.muttonRaw.itemID,(int)(ageMod*this.size_mod *(5+rand.nextInt(5))));
-		}
-	}
-
-	@Override
 	public boolean isBreedingItem(ItemStack par1ItemStack)
 	{
-		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack);
+		return !pregnant && RMItems.BreedingFood.contains(par1ItemStack.itemID);
 	}
-
-	/**
-	 * Returns the item ID for the item the mob drops on death.
-	 */
-	@Override
-	protected int getDropItemId()
-	{
-		return TFCItems.Wool.itemID;
-	}
-
-	/**
-	 * Called when a player interacts with a mob. e.g. gets milk from a cow, gets into the saddle on a pig.
-	 */
-	@Override
-	public boolean interact(EntityPlayer par1EntityPlayer)
-	{
-		if(!worldObj.isRemote){
-			par1EntityPlayer.addChatMessage(getGender()==GenderEnum.FEMALE?"Female":"Male");
-			if(getGender()==GenderEnum.FEMALE && pregnant){
-				par1EntityPlayer.addChatMessage("Pregnant");
-			}
-			//par1EntityPlayer.addChatMessage("12: "+dataWatcher.getWatchableObjectInt(12)+", 15: "+dataWatcher.getWatchableObjectInt(15));
-
-			if(par1EntityPlayer.getHeldItem()!=null&&par1EntityPlayer.getHeldItem().getItem() instanceof ItemCustomKnife && !getSheared() && getPercentGrown(this) > 0.95F){
-				setSheared(true);
-				this.entityDropItem(new ItemStack(TFCItems.Wool,1), 0.0F);
-				if(!par1EntityPlayer.capabilities.isCreativeMode){
-					par1EntityPlayer.getHeldItem().damageItem(1, par1EntityPlayer);
-				}
-			}
-		}
-		return super.interact(par1EntityPlayer);
-	}
-
-	/**
-	 * (abstract) Protected helper method to write subclass entity data to NBT.
-	 */
 	@Override
 	public void writeEntityToNBT(NBTTagCompound nbt)
 	{
 		super.writeEntityToNBT(nbt);
-		nbt.setInteger ("Sex", sex);
-		
 		nbt.setBoolean("BellyFull", this.bellyFull);
 		nbt.setBoolean("Hungry", this.hungry);
 		nbt.setBoolean("Starving", this.starving);
-		
-		nbt.setLong ("Animal ID", animalID);
-		nbt.setFloat ("Size Modifier", size_mod);
-		nbt.setBoolean("Pregnant", pregnant);
-		nbt.setFloat("MateSize", mateSizeMod);
-		nbt.setLong("ConceptionTime",timeOfConception);
-		nbt.setInteger("Age", getBirthDay());
 	}
-
-	/**
-	 * (abstract) Protected helper method to read subclass entity data from NBT.
-	 */
 	@Override
 	public void readEntityFromNBT(NBTTagCompound nbt)
 	{
-		super.readEntityFromNBT(nbt);
-		animalID = nbt.getLong ("Animal ID");
-		sex = nbt.getInteger ("Sex");
-		
+		super.readEntityFromNBT(nbt);	
 		this.bellyFull = nbt.getBoolean("BellyFull");
 		this.hungry = nbt.getBoolean("Hungry");
 		this.starving = nbt.getBoolean("Starving");
-		
-		size_mod = nbt.getFloat ("Size Modifier");
-		pregnant = nbt.getBoolean("Pregnant");
-		mateSizeMod = nbt.getFloat("MateSize");
-		timeOfConception = nbt.getLong("ConceptionTime");
-		this.dataWatcher.updateObject(15, nbt.getInteger ("Age"));
-		this.setAge(nbt.getInteger ("Age"));
-	}
-
-
-	@Override
-	public boolean isShearable(ItemStack item, World world, int X, int Y, int Z) 
-	{
-		return !getSheared() && isAdult();
-	}
-
-	@Override
-	public ArrayList<ItemStack> onSheared(ItemStack item, World world, int X, int Y, int Z, int fortune)
-	{
-		ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
-		setSheared(true);
-
-		ret.add(new ItemStack(TFCItems.Wool.itemID, 2, getFleeceColor()));
-
-		this.worldObj.playSoundAtEntity(this, "mob.sheep.shear", 1.0F, 1.0F);
-		return ret;
-	}
-
-	@Override
-	public void setGrowingAge(int par1)
-	{
-		if(!TFC_Core.PreventEntityDataUpdate) {
-			this.dataWatcher.updateObject(12, Integer.valueOf(par1));
-		}
-	}
-
-	@Override
-	public boolean isChild()
-	{
-		return !isAdult();
-	}
-
-
-
-	@Override
-	public EntityAgeable createChild(EntityAgeable entityageable) 
-	{
-		return null;
-	}
-
-	@Override
-	public int getBirthDay() 
-	{
-		return this.dataWatcher.getWatchableObjectInt(15);
-	}
-
-	@Override
-	public int getNumberOfDaysToAdult() 
-	{
-		return TFC_Time.daysInMonth * 3;
-	}
-
-	@Override
-	public boolean isAdult() 
-	{
-		return getBirthDay()+getNumberOfDaysToAdult() <= TFC_Time.getTotalDays();
-	}
-
-	@Override
-	public float getSize() 
-	{
-		return size_mod;
-	}
-
-	@Override
-	public boolean isPregnant() 
-	{
-		return pregnant;
-	}
-
-	@Override
-	public EntityLiving getEntity() 
-	{
-		return this;
-	}
-
-	@Override
-	public boolean canMateWith(IAnimal animal) 
-	{
-		if(animal.getGender() != this.getGender() && animal.isAdult() && animal instanceof EntitySheepRM) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	@Override
-	public void mate(IAnimal otherAnimal) 
-	{
-		if (getGender() == GenderEnum.MALE)
-		{
-			otherAnimal.mate(this);
-			return;
-		}
-		timeOfConception = TFC_Time.getTotalTicks();
-		pregnant = true;
-		resetInLove();
-		otherAnimal.setInLove(false);
-		mateSizeMod = otherAnimal.getSize();
-	}
-
-	@Override
-	public boolean getInLove()
-	{
-		return inLove;
-	}
-
-	@Override
-	public void setInLove(boolean b) 
-	{
-		this.inLove = b;
-	}
-
-	@Override
-	public long getAnimalID() 
-	{
-		return animalID;
-	}
-
-	@Override
-	public void setAnimalID(long id) 
-	{
-		animalID = id;
-	}
-
-	@Override
-	public int getHunger() {
-		return hunger;
-	}
-
-	@Override
-	public void setHunger(int h) 
-	{
-		hunger = h;
-	}
-
-	@Override
-	public GenderEnum getGender() 
-	{
-		return GenderEnum.genders[getSex()];
-	}
-	@Override
-	public int getSex() {
-		return dataWatcher.getWatchableObjectInt(13);
 	}
 	@Override
 	public EntityAgeable createChildTFC(EntityAgeable entityageable) {
 		return new EntitySheepRM(worldObj, this, entityageable.getEntityData().getFloat("MateSize"));
-	}
-	@Override
-	public void setAge(int par1) {
-		this.dataWatcher.updateObject(15, Integer.valueOf(par1));
 	}
 	@Override
 	public boolean isHungry()

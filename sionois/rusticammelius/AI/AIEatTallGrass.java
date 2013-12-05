@@ -1,16 +1,12 @@
 package sionois.rusticammelius.AI;
 
+import net.minecraft.block.Block;
+import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.world.World;
 import sionois.rusticammelius.Mobs.EntityChickenRM;
 import sionois.rusticammelius.Mobs.IFarmAnimals;
 import TFC.Core.TFC_Core;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockBed;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.tileentity.TileEntityChest;
-import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
-
 
 public class AIEatTallGrass extends EntityAIBase
 {
@@ -99,7 +95,7 @@ public class AIEatTallGrass extends EntityAIBase
 		 
 		 this.eatGrassTick = Math.max(0, this.eatGrassTick - 1);
 
-		 if(this.theEntity.getDistanceSq((double)this.edibleBlockX, (double)(this.edibleBlockY), (double)this.edibleBlockZ) > 1.25D)
+		 if(this.theEntity.getDistanceSq((double)this.edibleBlockX, (double)(this.edibleBlockY), (double)this.edibleBlockZ) > 1.5D)
 		 {
 			 //System.out.println("tryMoveToXYZ");
 			 this.theEntity.getNavigator().tryMoveToXYZ((double)((float)this.edibleBlockX) + 0.5D, (double)(this.edibleBlockY), (double)((float)this.edibleBlockZ) + 0.5D, this.field_75404_b);
