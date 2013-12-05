@@ -30,7 +30,7 @@ public class EntityWildCow extends EntityCowRM implements IWildAnimals
         this.tasks.addTask(0, new EntityAISwimming(this));
         this.tasks.addTask(1, new EntityAIMateTFC(this,worldObj, 1.0f));
         this.tasks.addTask(2, new AITemptRM(this, 0.25D, true));
-    	this.tasks.addTask(3, new EntityAIAvoidEntity(this, EntityPlayer.class, 50.0F, 1.5D, 2.0D));
+    	this.tasks.addTask(3, new EntityAIAvoidEntity(this, EntityPlayer.class, 35.0F, 1.5D, 2.0D));
 		this.tasks.addTask(3, new EntityAIAvoidEntity(this, EntityWolfRM.class, 25f, 1.5D, 2.0D));
 		this.tasks.addTask(3, new EntityAIAvoidEntity(this, EntityBear.class, 25f, 1.5D, 2.0D));
         this.tasks.addTask(4, new EntityAIWander(this, 1.0D));
