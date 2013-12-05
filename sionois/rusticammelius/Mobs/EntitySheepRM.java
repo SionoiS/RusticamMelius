@@ -28,11 +28,17 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 	
 	private AIEatTallGrass aiEatTallGrass = new AIEatTallGrass(this, 1.2F);
 
-	private boolean bellyFull;
-	private boolean hungry;
-	private boolean starving;
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
 	
 	int degreeOfDiversion = 2;
+	
+	/**Number of time this animal need to eat per month*/
+	protected int appetiteModifier = 50;
+	
+	/**Number of babies this animal can make per month*/
+	protected float breedingModifier = 0.204F;
 
 	public EntitySheepRM(World par1World)
 	{
@@ -52,13 +58,13 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 		this.hungry = false;
 		this.starving = false;
 		
-		animalID = TFC_Time.getTotalTicks() + entityId;
-		pregnant = false;
-		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
-		timeOfConception = 0;
-		mateSizeMod = 0;
-		sex = rand.nextInt(2);
-		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
+		this.animalID = TFC_Time.getTotalTicks() + entityId;
+		this.pregnant = false;
+		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
+		this.timeOfConception = 0;
+		this.mateSizeMod = 0;
+		this.sex = rand.nextInt(2);
+		this.size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event. We want spawned
@@ -79,8 +85,8 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
 		this.posX = ((EntityLivingBase)mother).posX;
 		this.posY = ((EntityLivingBase)mother).posY;
 		this.posZ = ((EntityLivingBase)mother).posZ;
-		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + F_size)/1.9F);
-		size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
+		this.size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + F_size)/1.9F);
+		this.size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event.
@@ -93,43 +99,39 @@ public class EntitySheepRM extends EntitySheepTFC implements IFarmAnimals
         return true;
     }
 	@Override
-	protected void updateAITasks()
+	public void onLivingUpdate()
 	{
 		this.sheepTimer = this.aiEatTallGrass.getEatGrassTick();
-		super.updateAITasks();
+		super.onLivingUpdate();
 		
-		if(!this.worldObj.isRemote)
+        if (this.worldObj.getTotalWorldTime() % (long)(TFC_Time.ticksInMonth / (long)this.appetiteModifier) == 0L)
+        {
+        	//System.out.println("tick");
+        	if(bellyFull)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = true;
+        		this.starving = false;
+        		//System.out.println("hungry");
+        	}
+        	else if(hungry)
+        	{
+        		this.bellyFull = false;
+        		this.hungry = false;
+        		this.starving = true;
+        		//System.out.println("starving");
+        	}
+		}
+    	if(starving)
+    	{
+    		this.attackEntityFrom(DamageSource.starve, 1.0F);
+    	}
+		if (!isDead && getHealth() < TFC_Core.getEntityMaxHealth(this) && this.bellyFull)
 		{
-			if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
-			{
-				//System.out.println("tick");
-				if(bellyFull)
-				{
-					this.bellyFull = false;
-					this.hungry = true;
-					this.starving = false;
-					//System.out.println("hungry");
-				}
-				else if(hungry)
-				{
-					this.bellyFull = false;
-					this.hungry = false;
-					this.starving = true;
-					//System.out.println("starving");
-				}
-			}
-        
-			if(starving)
-			{
-				this.attackEntityFrom(DamageSource.starve, 1.0F);
-			}
-    	
-			if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
-			{
-				this.heal(1);
-			}
+			this.heal(1);
 		}
 	}
+
 	private float getPercentGrown(IAnimal animal)
 	{
 		float birth = animal.getBirthDay();

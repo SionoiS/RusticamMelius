@@ -23,11 +23,17 @@ import TFC.Entities.Mobs.EntityPigTFC;
 
 public class EntityPigRM extends EntityPigTFC implements IFarmAnimals
 {
-	private boolean bellyFull;
-	private boolean hungry;
-	private boolean starving;
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
 	
 	int degreeOfDiversion = 2;
+	
+	/**Number of time this animal need to eat per month*/
+	protected int appetiteModifier = 20;
+	
+	/**Number of babies this animal can make per month*/
+	protected float breedingModifier = 0.263F;
 
 	public EntityPigRM(World par1World)
 	{
@@ -47,13 +53,13 @@ public class EntityPigRM extends EntityPigTFC implements IFarmAnimals
 		this.hungry = false;
 		this.starving = false;
 		
-		animalID = TFC_Time.getTotalTicks() + entityId;
-		pregnant = false;
-		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
-		timeOfConception = 0;
-		mateSizeMod = 0;
-		sex = rand.nextInt(2);
-		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
+		this.animalID = TFC_Time.getTotalTicks() + entityId;
+		this.pregnant = false;
+		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
+		this.timeOfConception = 0;
+		this.mateSizeMod = 0;
+		this.sex = rand.nextInt(2);
+		this.size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event. We want spawned
@@ -75,8 +81,8 @@ public class EntityPigRM extends EntityPigTFC implements IFarmAnimals
 		this.posX = ((EntityLivingBase)mother).posX;
 		this.posY = ((EntityLivingBase)mother).posY;
 		this.posZ = ((EntityLivingBase)mother).posZ;
-		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + F_size)/1.9F);
-		size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
+		this.size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + F_size)/1.9F);
+		this.size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event.
@@ -97,10 +103,11 @@ public class EntityPigRM extends EntityPigTFC implements IFarmAnimals
 		this.starving = false;
 	}
 	@Override
-	protected void updateAITasks()
+	public void onLivingUpdate()
 	{
-		super.updateAITasks();
-		if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+		super.onLivingUpdate();
+		
+        if (this.worldObj.getTotalWorldTime() % (long)(TFC_Time.ticksInMonth / (long)this.appetiteModifier) == 0L)
         {
         	//System.out.println("tick");
         	if(bellyFull)
@@ -122,7 +129,7 @@ public class EntityPigRM extends EntityPigTFC implements IFarmAnimals
     	{
     		this.attackEntityFrom(DamageSource.starve, 1.0F);
     	}
-		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+		if (!isDead && getHealth() < TFC_Core.getEntityMaxHealth(this) && this.bellyFull)
 		{
 			this.heal(1);
 		}

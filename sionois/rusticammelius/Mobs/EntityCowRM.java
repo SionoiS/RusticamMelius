@@ -24,11 +24,17 @@ import TFC.Entities.Mobs.EntityCowTFC;
 
 public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
 {
-	private boolean bellyFull;
-	private boolean hungry;
-	private boolean starving;
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
 
 	int degreeOfDiversion = 1;
+	
+	/**Number of time this animal need to eat per month*/
+	protected int appetiteModifier = 75;
+	
+	/**Number of babies this animal can make per month*/
+	protected float breedingModifier = 0.111F;
 	
 	public EntityCowRM(World par1World)
 	{
@@ -50,7 +56,7 @@ public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
 		
 		this.animalID = TFC_Time.getTotalTicks() + entityId;
 		this.pregnant = false;
-		this.pregnancyRequiredTime =(int)(4 * TFC_Time.ticksInMonth);
+		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
 		this.conception = 0;
 		this.mateSizeMod = 0;
 		this.sex = rand.nextInt(2);
@@ -98,10 +104,11 @@ public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
 		this.starving = false;
 	}
 	@Override
-	protected void updateAITasks()
+	public void onLivingUpdate()
 	{
-		super.updateAITasks();
-        if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+		super.onLivingUpdate();
+		
+        if (this.worldObj.getTotalWorldTime() % (long)(TFC_Time.ticksInMonth / (long)this.appetiteModifier) == 0L)
         {
         	//System.out.println("tick");
         	if(bellyFull)
@@ -123,7 +130,7 @@ public class EntityCowRM extends EntityCowTFC implements IFarmAnimals
     	{
     		this.attackEntityFrom(DamageSource.starve, 1.0F);
     	}
-		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+		if (!isDead && getHealth() < TFC_Core.getEntityMaxHealth(this) && this.bellyFull)
 		{
 			this.heal(1);
 		}

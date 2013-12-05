@@ -32,11 +32,17 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 	protected int pregnancyRequiredTime;
 	protected long timeOfConception;
 	
-	private boolean bellyFull;
-	private boolean hungry;
-	private boolean starving;
+	protected boolean bellyFull;
+	protected boolean hungry;
+	protected boolean starving;
 
 	int degreeOfDiversion = 2;
+	
+	/**Number of time this animal need to eat per month*/
+	protected int appetiteModifier = 5;
+	
+	/**Number of babies this animal per month*/
+	protected float breedingModifier = 1.428F;
 	
 	public EntityChickenRM(World par1World)
 	{
@@ -56,14 +62,14 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		this.hungry = false;
 		this.starving = false;
 		
-		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
-		animalID = TFC_Time.getTotalTicks() + entityId;
-		pregnant = false;
-		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
-		timeOfConception = 0;
-		mateSizeMod = 1f;
-		sex = rand.nextInt(2);
-		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
+		this.timeUntilNextEgg = this.rand.nextInt(2000) + 24000;
+		this.animalID = TFC_Time.getTotalTicks() + entityId;
+		this.pregnant = false;
+		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
+		this.timeOfConception = 0;
+		this.mateSizeMod = 1f;
+		this.sex = rand.nextInt(2);
+		this.size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event. We want spawned
@@ -84,8 +90,8 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		this.posX = ((EntityLivingBase)mother).posX;
 		this.posY = ((EntityLivingBase)mother).posY;
 		this.posZ = ((EntityLivingBase)mother).posZ;
-		size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + f_size)/1.9F);
-		size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
+		this.size_mod = (((rand.nextInt (degreeOfDiversion+1)*10*(rand.nextBoolean()?1:-1)) / 100f) + 1F) * (1.0F - 0.1F * sex) * (float)Math.sqrt((mother.getSize() + f_size)/1.9F);
+		this.size_mod = Math.min(Math.max(size_mod, 0.7F),1.3f);
 
 		//	We hijack the growingAge to hold the day of birth rather
 		//	than number of ticks to next growth event.
@@ -102,39 +108,9 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 	{
 		super.onLivingUpdate();
 		
-		if(isPregnant()) 
-		{
-			if(TFC_Time.getTotalTicks() >= timeOfConception + pregnancyRequiredTime)
-			{
-				for(int i = 0; i < 8 + rand.nextInt(5);i++)
-				{
-					EntityChickenRM baby = (EntityChickenRM) createChildTFC(this);
-					baby.setLocationAndAngles(posX+(rand.nextFloat()-0.5F)*2F,posY,posZ+(rand.nextFloat()-0.5F)*2F, 0.0F, 0.0F);
-					baby.rotationYawHead = baby.rotationYaw;
-					baby.renderYawOffset = baby.rotationYaw;
-					worldObj.spawnEntityInWorld(baby);
-					baby.setAge((int)TFC_Time.getTotalDays());
-				}
-				pregnant = false;
-			}
-		}
-	}
-	@Override
-	public void eatGrassBonus()
-	{
-		//System.out.println("eatGrassBonus");
-		this.bellyFull = true;
-		this.hungry = false;
-		this.starving = false;
-	}
-	@Override
-	protected void updateAITasks()
-	{
-		super.updateAITasks();
-		
-        if (this.worldObj.getTotalWorldTime() % 24000L == 0L)
+        if (this.worldObj.getTotalWorldTime() % (long)(TFC_Time.ticksInMonth / (long)this.appetiteModifier) == 0L)
         {
-        	//System.out.println("tick");
+        	System.out.println("tick");
         	if(bellyFull)
         	{
         		this.bellyFull = false;
@@ -154,10 +130,31 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
     	{
     		this.attackEntityFrom(DamageSource.starve, 1.0F);
     	}
-		if (this.bellyFull && getHealth() < TFC_Core.getEntityMaxHealth(this) && !isDead)
+		if (!isDead && getHealth() < TFC_Core.getEntityMaxHealth(this) && this.bellyFull)
 		{
 			this.heal(1);
 		}
+		if(isPregnant()) 
+		{
+			if(TFC_Time.getTotalTicks() >= timeOfConception + pregnancyRequiredTime)
+			{
+				EntityChickenRM baby = (EntityChickenRM) createChildTFC(this);
+				baby.setLocationAndAngles(posX+(rand.nextFloat()-0.5F)*2F,posY,posZ+(rand.nextFloat()-0.5F)*2F, 0.0F, 0.0F);
+				baby.rotationYawHead = baby.rotationYaw;
+				baby.renderYawOffset = baby.rotationYaw;
+				worldObj.spawnEntityInWorld(baby);
+				baby.setAge((int)TFC_Time.getTotalDays());
+				this.pregnant = false;
+			}
+		}
+	}
+	@Override
+	public void eatGrassBonus()
+	{
+		//System.out.println("eatGrassBonus");
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
 	}
 	@Override
 	public void writeEntityToNBT(NBTTagCompound nbt)
@@ -166,8 +163,8 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		nbt.setBoolean("BellyFull", this.bellyFull);
 		nbt.setBoolean("Hungry", this.hungry);
 		nbt.setBoolean("Starving", this.starving);
-		nbt.setBoolean("Pregnant", pregnant);
-		nbt.setLong("ConceptionTime",timeOfConception);
+		nbt.setBoolean("Pregnant", this.pregnant);
+		nbt.setLong("ConceptionTime",this.timeOfConception);
 	}
 	@Override
 	public void readEntityFromNBT(NBTTagCompound nbt)
@@ -176,8 +173,8 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		this.bellyFull = nbt.getBoolean("BellyFull");
 		this.hungry = nbt.getBoolean("Hungry");
 		this.starving = nbt.getBoolean("Starving");
-		pregnant = nbt.getBoolean("Pregnant");
-		timeOfConception = nbt.getLong("ConceptionTime");
+		this.pregnant = nbt.getBoolean("Pregnant");
+		this.timeOfConception = nbt.getLong("ConceptionTime");
 	}
     public boolean isBreedingItem(ItemStack par1ItemStack)
     {
@@ -199,7 +196,7 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 
 		if(!worldObj.isRemote)
 		{
-			if(getGender()==GenderEnum.FEMALE && pregnant)
+			if(getGender()==GenderEnum.FEMALE && this.pregnant)
 			{
 				par1EntityPlayer.addChatMessage("Pregnant");
 			}

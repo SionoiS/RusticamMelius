@@ -38,7 +38,7 @@ public class EntityWildCow extends EntityCowRM implements IWildAnimals
 		
 		this.animalID = TFC_Time.getTotalTicks() + entityId;
 		this.pregnant = false;
-		this.pregnancyRequiredTime =(int)(4 * TFC_Time.ticksInMonth);
+		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
 		this.conception = 0;
 		this.mateSizeMod = 0;
 		this.sex = rand.nextInt(2);
@@ -78,5 +78,13 @@ public class EntityWildCow extends EntityCowRM implements IWildAnimals
 		float time = (int) TFC_Time.getTotalDays();
 		float percent =(time-birth)/animal.getNumberOfDaysToAdult();
 		return Math.min(percent, 1f);
+	}
+	@Override
+	public void onLivingUpdate()
+	{	
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
+		super.onLivingUpdate();
 	}
 }

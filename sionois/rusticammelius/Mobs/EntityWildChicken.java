@@ -39,7 +39,7 @@ public class EntityWildChicken extends EntityChickenRM implements IWildAnimals
 		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
 		animalID = TFC_Time.getTotalTicks() + entityId;
 		pregnant = false;
-		pregnancyRequiredTime = (int) (4 * TFC_Time.ticksInMonth);
+		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
 		timeOfConception = 0;
 		mateSizeMod = 1f;
 		sex = rand.nextInt(2);
@@ -71,5 +71,13 @@ public class EntityWildChicken extends EntityChickenRM implements IWildAnimals
 		//	than number of ticks to next growth event.
 		//
 		this.setAge((int) TFC_Time.getTotalDays());
+	}
+	@Override
+	public void onLivingUpdate()
+	{	
+		this.bellyFull = true;
+		this.hungry = false;
+		this.starving = false;
+		super.onLivingUpdate();
 	}
 }
