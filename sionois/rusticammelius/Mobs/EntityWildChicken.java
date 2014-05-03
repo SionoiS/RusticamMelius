@@ -37,7 +37,7 @@ public class EntityWildChicken extends EntityChickenRM implements IWildAnimals
         this.tasks.addTask(5, new EntityAILookIdle(this));
 
 		this.timeUntilNextEgg = this.rand.nextInt(6000) + 24000;
-		animalID = TFC_Time.getTotalTicks() + entityId;
+		//this.animalID = TFC_Time.getTotalTicks() + entityId;
 		pregnant = false;
 		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
 		timeOfConception = 0;

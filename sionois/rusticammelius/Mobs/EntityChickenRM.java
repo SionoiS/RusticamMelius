@@ -63,7 +63,7 @@ public class EntityChickenRM extends EntityChickenTFC implements IFarmAnimals
 		this.starving = false;
 		
 		this.timeUntilNextEgg = this.rand.nextInt(2000) + 24000;
-		this.animalID = TFC_Time.getTotalTicks() + entityId;
+		//this.animalID = TFC_Time.getTotalTicks() + entityId;
 		this.pregnant = false;
 		this.pregnancyRequiredTime = (int) (TFC_Time.ticksInMonth / this.breedingModifier);
 		this.timeOfConception = 0;
